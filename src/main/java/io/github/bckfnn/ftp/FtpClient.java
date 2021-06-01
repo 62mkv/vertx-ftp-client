@@ -141,9 +141,10 @@ public class FtpClient {
      * @param path the path to list.
      * @param localFile an asyncFile where the download file will be written
      * @param progress a progress handler that is called for each part that is recieved.
+     * @param reprType representation type to use for data transfer
      * @param handler callback handler that is called when the list is completed.
      */
-    public void retr(String path, WriteStream<Buffer> localFile, Handler<Progress> progress, Handler<AsyncResult<Void>> handler) {
+    public void retr(String path, WriteStream<Buffer> localFile, RepresentationType reprType, Handler<Progress> progress, Handler<AsyncResult<Void>> handler) {
         AtomicInteger ends = new AtomicInteger(0);
         pasv(handler, datasocket -> {
             datasocket.endHandler($ -> {
@@ -155,26 +156,29 @@ public class FtpClient {
                 progress.handle(new Progress(this, pumped));
             }).start();
         }, $ -> {
-            write("RETR " + path, resp(handler,
-                    when("125", "150", retr -> {
-                        handle(resp(handler, 
-                                when("226", "250", listdone -> {
-                                    if (ends.incrementAndGet() == 2) {
-                                        handler.handle(Future.succeededFuture());
-                                    }
-                                })));
-                    })));
+            type(reprType, $_ -> {
+                write("RETR " + path, resp(handler,
+                        when("125", "150", retr -> {
+                            handle(resp(handler,
+                                    when("226", "250", listdone -> {
+                                        if (ends.incrementAndGet() == 2) {
+                                            handler.handle(Future.succeededFuture());
+                                        }
+                                    })));
+                        })));
+            });
         });
     }
 
     /**
      * Perform a store (upload) to the file of path. 
      * @param path the path to upload to.
-     * @param localFile an asyncFile where the download file will be written
-     * @param progress a progress handler that is called for each part that is recieved.
+     * @param localFile an asyncFile that has to be upload
+     * @param reprType representation type for the upload operation
+     * @param progress a progress handler that is called for each part that is received.
      * @param handler callback handler that is called when the list is completed.
      */
-    public void stor(String path, ReadStream<Buffer> localFile, Handler<Progress> progress, Handler<AsyncResult<Void>> handler) {
+    public void stor(String path, ReadStream<Buffer> localFile, RepresentationType reprType, Handler<Progress> progress, Handler<AsyncResult<Void>> handler) {
         AtomicInteger ends = new AtomicInteger(0);
         pasv(handler, datasocket -> {
             localFile.endHandler($ -> {
@@ -187,15 +191,17 @@ public class FtpClient {
                 progress.handle(new Progress(this, pumped));
             }).start();
         }, $ -> {
-            write("STOR " + path, resp(handler,
+            type(reprType, $_ -> {
+                write("STOR " + path, resp(handler,
                     when("125", "150", retr -> {
-                        handle(resp(handler, 
+                        handle(resp(handler,
                                 when("226", "250", listdone -> {
                                     if (ends.incrementAndGet() == 2) {
                                         handler.handle(Future.succeededFuture());
                                     }
                                 })));
                     })));
+            });
         });
     }
 
@@ -246,9 +252,46 @@ public class FtpClient {
 
     public void quit(Handler<AsyncResult<Void>> handler) {
         write("QUIT", resp(handler,
+                when("221", pasv -> {
+                    handler.handle(Future.succeededFuture());
+                })));
+    }
+
+    /**
+     * Set the "representation type" for transmitted data (see
+     * @param type - representation type to set
+     * @param handler
+     */
+    public void type(RepresentationType type, Handler<AsyncResult<Void>> handler) {
+        write(getTypeCommand(type), resp(handler,
                 when("200", pasv -> {
                     handler.handle(Future.succeededFuture());
                 })));
+    }
+
+    private String getTypeCommand(RepresentationType type) {
+        final String cmd = "TYPE" + " " + type.getType();
+        if (type.getFormat() != null) {
+            return cmd + " " + type.getFormat();
+        }
+        return cmd;
+    }
+
+    /**
+     * Close the NetClient (and by implication, all open sockets)
+     */
+    public void close() {
+        if (client != null) {
+            client.close();
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "FtpClient{" +
+                "host='" + host + '\'' +
+                ", port=" + port +
+                '}';
     }
 
     private void write(String cmd, Handler<AsyncResult<Response>> handler) {

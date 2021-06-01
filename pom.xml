@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.bckfnn</groupId>
 	<artifactId>vertx-ftp-client</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.0.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>FTP client for vertx</name>
@@ -16,14 +16,6 @@
 		<slf4.version>1.7.21</slf4.version>
 		<logback.version>1.1.7</logback.version>
 	</properties>
-
-	<distributionManagement>
-		<repository>
-			<id>bintray-bckfnn-maven</id>
-			<name>bckfnn-maven</name>
-			<url>https://api.bintray.com/maven/bckfnn/maven/vertx-ftp-client/;publish=1</url>
-		</repository>
-	</distributionManagement>
 
 	<dependencies>
 		<dependency>

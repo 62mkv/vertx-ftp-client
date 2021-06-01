@@ -1,8 +1,6 @@
 # actioner
 
-[ ![Download](https://api.bintray.com/packages/bckfnn/maven/vertx-ftp-client/images/download.svg) ](https://bintray.com/bckfnn/maven/vertx-ftp-client/_latestVersion)
-
-__vertx-ftp-client__ is a simple limited async ftp client which works with vert.x 
+__vertx-ftp-client__ is a simple limited async ftp client which works with Vert.x 
 
 ## Release
 

@@ -20,11 +20,13 @@ import java.util.function.BiConsumer;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.file.OpenOptions;
 
+@Ignore
 public class FtpClientTele2Test {
     static Vertx vertx;
 
@@ -82,7 +84,7 @@ public class FtpClientTele2Test {
                 if (latch.failed(arfile)) {
                     return;
                 }
-                client.retr("512KB.zip", arfile.result(), progress -> {}, retr -> {
+                client.retr("512KB.zip", arfile.result(), RepresentationType.image(), progress -> {}, retr -> {
                     if (latch.failed(retr)) {
                         return;
                     }
@@ -106,7 +108,7 @@ public class FtpClientTele2Test {
                 if (latch.failed(arfile)) {
                     return;
                 }
-                client.stor("upload/LICENSE-2.0.txt-" + UUID.randomUUID().toString(), arfile.result(), progress -> {}, retr -> {
+                client.stor("upload/LICENSE-2.0.txt-" + UUID.randomUUID().toString(), arfile.result(), RepresentationType.asciiCarriageControl(), progress -> {}, retr -> {
                     if (latch.failed(retr)) {
                         return;
                     }
